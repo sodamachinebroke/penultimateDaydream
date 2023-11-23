@@ -5,7 +5,7 @@ A simple Javascript game for Uni
 ### Core Gameplay Features:
 
 1. **Character Composition:**
-   - Start a ~~loser~~ character, who can equip one weapon.
+   - Start with a ~~loser~~ character, who can equip one weapon.
    - Said weapons have three element types: Fire, Ice, and Brute (element-free damage).
 
 2. **Combat System:**
