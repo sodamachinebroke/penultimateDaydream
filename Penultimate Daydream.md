@@ -1,7 +1,7 @@
 ### Alapkoncepció
 Az eredeti Final Fantasy egy levizezett verziója.
 Rajz:
-![koncepciós rajz](picture.png)
+![koncepciós rajz]("https://imgur.com/a/nALta4C")
 ### Célzott platformok:
 Számítógépes böngésző
 ### Irányítás:
