@@ -8,8 +8,6 @@ class MainScreen extends Phaser.Scene {
 
   preload() {                                                                     //Preload function here
     this.loadAssets();
-    this.load.audio('battleSong', ['music', 'assets/battleMusic.mp3']);
-    this.load.image('battleBG', 'assets/battleBG.png');
   }
 
   create() {                                                                      //Create function here
@@ -19,7 +17,7 @@ class MainScreen extends Phaser.Scene {
     this.createAudio();
     this.createInput();
 
-    this.input.keyboard.on('keydown-B', () => {                                  // Start the BattleScene when the 'B' key is pressed for debugging purposes
+    this.input.keyboard.on('keydown-B', () => {                                 // Start the BattleScene when the 'B' key is pressed for debugging purposes
       this.music.stop();
       this.scene.start('BattleScene');
     });
@@ -38,6 +36,9 @@ class MainScreen extends Phaser.Scene {
       margin: 1,
       spacing: 1,
     });
+    this.load.image('battleBG', 'assets/battleBG.png');
+
+    this.load.audio('battleSong', ['music', 'assets/battleMusic.mp3']);
     this.load.audio('ambientSong', ['music', 'assets/Worldmusic.mp3']);
   }
 
@@ -49,7 +50,7 @@ class MainScreen extends Phaser.Scene {
     this.aboveLayer = this.map.createLayer('Above', tileset, 0, 0);
 
     this.worldLayer.setCollisionByProperty({ collides: true });
-    this.aboveLayer.setDepth(10);
+    this.aboveLayer.setDepth(1);
   }
 
   createPlayer() {
@@ -63,7 +64,14 @@ class MainScreen extends Phaser.Scene {
 
   createAudio() {
     this.music = this.sound.add('ambientSong');
-    this.music.setVolume(0.1);
+    this.music.setVolume(0);
+
+    this.tweens.add({
+      targets: this.music,
+      volume: 0.1,
+      duration:4000,
+      ease: 'Linear'
+    });
     this.music.play();
   }
 
