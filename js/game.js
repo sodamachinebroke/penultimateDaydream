@@ -15,13 +15,13 @@ class MainScreen extends Phaser.Scene {
       spacing: 1
     });
 
-    this.load.audio('song', ['music', 'assets/Worldmusic.mp3']);
+    this.load.audio('ambientSong', ['music', 'assets/Worldmusic.mp3']);
   }
 
   create() {
     const map = this.make.tilemap({ key: "map" });
     const tileset = map.addTilesetImage("tiledset", "tiles");
-    const music = this.sound.add('song');
+    const music = this.sound.add('ambientSong');
 
     music.play();
 
