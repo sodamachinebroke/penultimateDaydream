@@ -1,21 +1,25 @@
 /// <reference path="../types/index.d.ts" />
 
-class battleScene extends Phaser.Scene {
+class BattleScene extends Phaser.Scene {
     constructor(title) {
-        super(title);
+        super({ key: title });
     }
 
     preload() {
-        this.load.image("battleBG", "assets/battleBG.png");
-        this.load.audio('battleSong', ['music', 'assets/battleMusic.mp3']);
+        
     }
 
     create() {
+        this.bg = this.add.sprite(0, 0, 'battleBG');
+        this.bg.setOrigin(0, 0);
 
-    }
 
-    update() {
+        const bMusic = this.sound.add('battleSong');
+        bMusic.setVolume(0.2);
+        bMusic.play();
 
+
+        this.scene.start('battle');
     }
 
 }
