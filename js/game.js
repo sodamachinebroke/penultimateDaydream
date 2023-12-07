@@ -1,5 +1,8 @@
 /// <reference path="./types/index.d.ts" />
 
+function collides () {
+  console.log('collided');
+}
 class MainScreen extends Phaser.Scene {
   constructor(title) {
     super(title);
@@ -18,6 +21,7 @@ class MainScreen extends Phaser.Scene {
     this.load.audio("song", ["music", "assets/music/Worldmusic.mp3"]);
   }
 
+
   create() {
     this.movementAnim = 'stop';
     const map = this.make.tilemap({ key: "map" });
@@ -33,10 +37,9 @@ class MainScreen extends Phaser.Scene {
     this.player.setScale(1.5, 1.5);
 
     worldLayer.setCollisionByProperty({ collides: true });
-
     aboveLayer.setDepth(10);
 
-    this.physics.add.collider(this.player, this.worldLayer);
+    this.physics.add.collider(this.player, worldLayer);
 
     this.cursors = this.input.keyboard.createCursorKeys();
 
