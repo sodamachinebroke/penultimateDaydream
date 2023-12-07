@@ -72,12 +72,31 @@ class MainScreen extends Phaser.Scene {
     });
   }
 
+  inRadius(x, y, radius) {
+    const dist = Math.sqrt((this.player.x - x) ** 2 + (this.player.y - y) ** 2);
+    return dist <= radius;
+  }
+
   update() {
     const speed = 175;
     const prevVelocity = this.player.body.velocity.clone();
     // Stop any previous movement from the last frame
     this.player.body.setVelocity(0);
 
+    // check if player is in a specific area
+
+    const coord = {'castle': [622,241], 'cave': [80,171], 'forest': [302, 370]}
+
+    if (this.inRadius(coord.castle[0], coord.castle[1], 50)) {
+      console.log("castle");
+    }
+    if (this.inRadius(coord.cave[0], coord.cave[1], 50)) {
+      console.log("cave");
+    }
+    if (this.inRadius(coord.forest[0], coord.forest[1], 50)) {
+      console.log("forest");
+    }
+    
     // Horizontal movement
     if (this.cursors.left.isDown) {
       this.player.body.setVelocityX(-speed);
@@ -119,7 +138,7 @@ class MainMenu extends Phaser.Scene {
   constructor(title) {
     super(title);
   }
-  
+
   preload(){
     this.load.image("mainmenu", "../assets/images/mainmenu.jpg");
     this.load.image("board", "../assets/images/wood21.png");
@@ -171,7 +190,7 @@ class MainMenu extends Phaser.Scene {
     const name2 = this.add.text(50, 250, "Kacsir András", { fontSize: "64px", fill: "#000" , strokeThickness : 5, });
     const name3 = this.add.text(50, 350, "Pogonyi Ábel TR6FKP", { fontSize: "64px", fill: "#000" , strokeThickness : 5, });
 
-    const elements = [backButton, name1, name2, name3]
+    const elements = [backButton,title , name1, name2, name3]
     this.onHover(backButton, backButton);
     backButton.on("pointerdown", () => {
       this.setVisibility(true);
