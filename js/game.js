@@ -1,8 +1,4 @@
 /// <reference path="./types/index.d.ts" />
-
-function collides () {
-  console.log('collided');
-}
 class MainScreen extends Phaser.Scene {
   constructor(title) {
     super(title);
@@ -38,6 +34,13 @@ class MainScreen extends Phaser.Scene {
 
     worldLayer.setCollisionByProperty({ collides: true });
     aboveLayer.setDepth(10);
+    //collision debug
+    // const debugGraphics = this.add.graphics().setAlpha(0.75);
+    // worldLayer.renderDebug(debugGraphics, {
+    //   tileColor: null, // Color of non-colliding tiles
+    //   collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+    //   faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+    // });
 
     this.physics.add.collider(this.player, worldLayer);
 
@@ -116,12 +119,73 @@ class MainMenu extends Phaser.Scene {
   constructor(title) {
     super(title);
   }
-  preload() {}
-  create() {}
-  update() {}
+  
+  preload(){
+    this.load.image("mainmenu", "../assets/images/mainmenu.jpg");
+    this.load.image("board", "../assets/images/wood21.png");
+  }
+
+  create(){
+    
+    const background = this.add.image(400, 320, "mainmenu");
+    this.startButton = this.add.image(400, 160, "board").setInteractive();
+    this.startText = this.add.text(300, 125, "Start", { fontSize: "64px", fill: "#000" , strokeThickness : 10, });
+    this.creditButton = this.add.image(400, 320, "board").setInteractive();
+    this.creditText = this.add.text(280, 285, "Credit", { fontSize: "64px", fill: "#000" , strokeThickness : 10, });
+
+
+    this.startButton.setScale(0.8, 0.3);
+    this.creditButton.setScale(0.8, 0.3);
+    this.startButton.on("pointerdown", () => {
+      this.scene.start("game");
+    });
+    this.onHover(this.startButton,this.startText);
+
+    this.creditButton.on("pointerdown", () => {
+      this.changeToCredit();
+    });
+    this.onHover(this.creditButton,this.creditText);
+  }
+
+  setVisibility(visible){
+    this.startButton.setVisible(visible);
+    this.startText.setVisible(visible);
+    this.creditButton.setVisible(visible);
+    this.creditText.setVisible(visible);
+  }
+
+  onHover(button, text){
+    button.on("pointerover", () => {
+      text.setColor("#1FFF00");
+    });
+    button.on("pointerout", () => {
+      text.setColor("#000");
+    });
+  }
+
+  changeToCredit(){
+    this.setVisibility(false);
+    const backButton = this.add.text(50, 550, "Back", { fontSize: "64px", fill: "#000" , strokeThickness : 10, }).setInteractive();
+    const title = this.add.text(50, 50, "Játékot készítette:", { fontSize: "64px", fill: "#fff" , strokeThickness : 5, });
+    const name1 = this.add.text(50, 150, "Érsek Norbert", { fontSize: "64px", fill: "#000" , strokeThickness : 5, });
+    const name2 = this.add.text(50, 250, "Kacsir András", { fontSize: "64px", fill: "#000" , strokeThickness : 5, });
+    const name3 = this.add.text(50, 350, "Pogonyi Ábel TR6FKP", { fontSize: "64px", fill: "#000" , strokeThickness : 5, });
+
+    const elements = [backButton, name1, name2, name3]
+    this.onHover(backButton, backButton);
+    backButton.on("pointerdown", () => {
+      this.setVisibility(true);
+      elements.forEach(element => {element.setVisible(false);});
+    });
+  }
+
+  update(){
+
+  }
 }
 
 const mainScreen = new MainScreen("game");
+const mainMenu = new MainMenu("mainmenu");
 
 const config = {
   type: Phaser.AUTO,
@@ -135,10 +199,6 @@ const config = {
       gravity: { y: 0 },
     },
   },
-  scene: mainScreen,
+  scene: [mainMenu, mainScreen],
 };
-
-function start() {
-  const gameObject = new Phaser.Game(config);
-  document.getElementById("startButton").hidden = true;
-}
+const gameObject = new Phaser.Game(config);
