@@ -77,10 +77,15 @@ class BattleScene extends Phaser.Scene {
         case 'Heal':
             break;
         case 'Flee':
-            this.scene.start('game', {
-                x:130,
-                y:220
+            this.bMusic.stop();
+            this.cameras.main.fadeOut(500);
+            this.cameras.main.on(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>{
+                this.scene.start('game', {
+                    x:130,
+                    y:220
+                });
             });
+            
             break;
 
         default:
@@ -94,16 +99,16 @@ class BattleScene extends Phaser.Scene {
         this.bg.setOrigin(0, 0);
         this.bg.setDisplaySize(800, 640);
 
-        const bMusic = this.sound.add('battlesong');
-        bMusic.setVolume(0);
+        this.bMusic = this.sound.add('battlesong');
+        this.bMusic.setVolume(0);
 
         this.tweens.add({
-            targets: bMusic,
+            targets: this.bMusic,
             volume: 0.1,
             duration: 5000,
             ease: 'Linear'
         });
-        bMusic.play();
+        this.bMusic.play();
     }
 
 }
