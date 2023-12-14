@@ -91,7 +91,7 @@ class MainScreen extends Phaser.Scene {
       console.log("castle");
     }
     if (this.inRadius(coord.cave[0], coord.cave[1], 50)) {
-      console.log("cave");
+      this.scene.start()
     }
     if (this.inRadius(coord.forest[0], coord.forest[1], 50)) {
       console.log("forest");
