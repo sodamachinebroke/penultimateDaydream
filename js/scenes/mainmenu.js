@@ -12,7 +12,7 @@ class MainMenu extends Phaser.Scene {
   
     create(){
       
-      const background = this.add.image(400, 320, "mainmenu");
+      this.add.image(400, 320, "mainmenu");
       this.startButton = this.add.image(400, 160, "board").setInteractive();
       this.startText = this.add.text(300, 125, "Start", { fontSize: "64px", fill: "#000" , strokeThickness : 10, });
       this.creditButton = this.add.image(400, 320, "board").setInteractive();
