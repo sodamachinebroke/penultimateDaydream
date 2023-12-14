@@ -33,7 +33,7 @@ class BattleScene extends Phaser.Scene {
                 stepY: 100
             },
             createCallback: function (enemy) {
-                enemy.setScale(3, 3);
+                enemy.setScale(0.4, 0.4);
             }
         });
     }

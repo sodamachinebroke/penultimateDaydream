@@ -28,12 +28,13 @@ class MainScreen extends Phaser.Scene {
     });
 
     /*THIS ENEMY IS A PLACEHOLDER*/
-    this.load.spritesheet("enemy", "assets/images/enemy_placeholder.png", {
-      frameWidth: 15,
-      frameHeight: 24,
-      margin: 1,
-      spacing: 1
-    })
+    // this.load.spritesheet("enemy", "assets/images/enemy_placeholder.png", {
+    //   frameWidth: 15,
+    //   frameHeight: 24,
+    //   margin: 1,
+    //   spacing: 1
+    // })
+    this.load.image("enemy", "assets/images/goblin.png");
 
     /*We load the stuff needed for battles too, because it's simpler this way*/
     this.load.image('battleBG', 'assets/images/battleBG.png');
