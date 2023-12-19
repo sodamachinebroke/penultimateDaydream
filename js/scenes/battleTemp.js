@@ -1,30 +1,36 @@
+/*We don't currently use this file, but it can be used as a backup*/
+
 /// <reference path="../types/index.d.ts" />
 
 class BattleScene extends Phaser.Scene {
     constructor(title) {
         super({ key: title });
     }
-
-    // We need this to determine whether our guy can attack
+    //We need this to determine whether our guy can attack
     lockUi = false;
-    playerHealth = 50;
-    selectedEnemy;
-    defeatedEnemies = 0;
 
-    preload() {}
+    preload() {
+
+    }
 
     create() {
+
         this.registry.set('enemyIndex', -1);
         this.initializeBasics();
         const mainScreen = this.scene.get('game');
+        //Import the mans
         const player = mainScreen.player;
-
+        /*Player health is reset in every battle. Let's say they like ate a magic mushroom or smth between battles idk*/
+        this.playerHealth = 50;
         this.player = this.physics.add.sprite(600, 300, "player", 10);
         this.player.setScale(3, 3);
 
+        /*Let's make the battle menu*/
         this.battleMenu();
+        /*Let's put enemies down*/
         this.createEnemyGroup();
 
+        /*Don't even mention this, it's awful*/
         this.splashText = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2,
@@ -39,6 +45,7 @@ class BattleScene extends Phaser.Scene {
         this.splashText.setVisible(false);
     }
 
+    /*Enemy group creation similar to the road crossing game we made in class*/
     createEnemyGroup() {
         this.enemyGroup = this.physics.add.group({
             key: 'enemy',
@@ -56,6 +63,7 @@ class BattleScene extends Phaser.Scene {
         });
         let enemyCount = 0;
 
+        /*Let's make a button for every enemy*/
         this.enemyGroup.children.iterate((enemy, index) => {
             enemyCount++;
             const enemyButton = this.add.text(
@@ -75,20 +83,28 @@ class BattleScene extends Phaser.Scene {
 
             this.battleMenuContainer.add(enemyButton);
         });
+
+
     }
 
     handleEnemyButtonClick(enemyIndex) {
+
+        /* I'm gonna be honest, i do not remember why we need to mess around in the registry, but this seemed logical. Hopefully it's safe too.*/
+        /*I remember now, we need this for later*/
         this.registry.set('enemyIndex', enemyIndex);
         this.battleMenuContainer.list.slice(5, 8).forEach((enemyButton, index) => {
-            if (index !== this.registry.get('enemyIndex')) {
+
+            if (index != this.registry.get('enemyIndex'))
                 this.tweens.add({
                     targets: enemyButton,
                     scaleX: 1,
                     scaleY: 1,
+
                 });
-            }
         });
 
+
+        // Highlight the selected enemy button
         const selectedEnemyButton = this.battleMenuContainer.getAt(enemyIndex + 5);
         if (selectedEnemyButton) {
             this.selectEnemy = this.tweens.add({
@@ -102,15 +118,16 @@ class BattleScene extends Phaser.Scene {
             this.selectedEnemy = this.enemyGroup.getChildren()[enemyIndex];
         }
     }
-
     battleFunction() {
+
         this.lockUi = true;
         const maxTurns = 4;
         let currentTurn = 0;
 
         const executeTurn = () => {
+            /*Need the registry here, i'm not smart enough to rewrite this now*/
             const selectedEnemyIndex = this.registry.get('enemyIndex');
-
+            /*Implementing a turn for everyone on the screen. A bit wonky, but works for now*/
             switch (currentTurn % 4) {
                 case 0:
                     if (selectedEnemyIndex !== -1) {
@@ -134,16 +151,22 @@ class BattleScene extends Phaser.Scene {
             currentTurn++;
 
             if (currentTurn < maxTurns) {
+                // Execute the next turn after a delay
                 this.time.delayedCall(2000, executeTurn, [], this);
             } else {
+                //Unlock UI
                 this.lockUi = false;
+
             }
         };
 
+        // Start the turn sequence
         executeTurn();
     }
 
     playerAttack(enemyIndex) {
+        console.log('Player attacks enemy: ' + (enemyIndex + 1));
+
         const selectedEnemy = this.selectedEnemy;
 
         if (selectedEnemy && !selectedEnemy.defeated) {
@@ -154,11 +177,13 @@ class BattleScene extends Phaser.Scene {
             if (enemyButton) {
                 enemyButton.setText(`Enemy ${enemyIndex + 1} - HP: ${selectedEnemy.health}`);
                 if (selectedEnemy.health <= 0) {
+                    // Enemy defeated, update defeated flag
                     selectedEnemy.defeated = true;
                     this.defeatedEnemies++;
                     console.log(`Enemy ${enemyIndex + 1} defeated!`);
 
                     if (this.defeatedEnemies === this.enemyGroup.getChildren().length) {
+                        // All enemies defeated, transition to winScene
                         console.log('All enemies defeated! Transitioning to winScene');
                         this.scene.start('winScene');
                     }
@@ -166,6 +191,8 @@ class BattleScene extends Phaser.Scene {
             }
         }
     }
+
+    /*Enemy attacks. The game logs the player health for debugging purposes but we don't care.*/
 
     enemyAttack(enemyIndex) {
         const damage = Phaser.Math.Between(1, 10);
@@ -178,14 +205,18 @@ class BattleScene extends Phaser.Scene {
         }
     }
 
+    /*Supposedly this is where the menu thingy gets defined / made, but it doesn't have everything here. Sometimes we add stuff outside of this function, this really is spaghetti lol*/
     battleMenu() {
+        /*Rectangle*/
         this.battleMenuContainer = this.add.container(20, this.game.config.height - 200);
         const bMenuBG = this.add.rectangle(0, 0, 760, 120, 0x000000, 0.5);
         bMenuBG.setOrigin(0, 0);
         this.battleMenuContainer.add(bMenuBG);
 
+        /*Right side of the screen*/
         const buttonTexts = ['Attack', 'Heal', 'Flee'];
         buttonTexts.forEach((text, index) => {
+
             const button = this.add.text(
                 600,
                 20 + index * 30,
@@ -203,6 +234,7 @@ class BattleScene extends Phaser.Scene {
             this.battleMenuContainer.add(button);
         });
 
+        /*Player health display*/
         const playerHealthText = this.add.text(300, 50, `Player Health: ${this.playerHealth}`, {
             fill: '#ffffff',
             fontFamily: 'Arial',
@@ -211,7 +243,12 @@ class BattleScene extends Phaser.Scene {
 
         playerHealthText.setOrigin(0, 0);
         this.battleMenuContainer.add(playerHealthText);
+
+
+
     }
+
+    /*Function to break the 4th wall, used to display information. Is kind of similar to a Minecraft function.*/
 
     displaySplashText(text) {
         this.clearMessages();
@@ -228,26 +265,31 @@ class BattleScene extends Phaser.Scene {
         }, 2000);
     }
 
+    /*Yeah need this to clear the message after 2 seconds, cause Js doesn't have a wait function*/
     clearMessages() {
         this.splashText.setVisible(false);
     }
 
+    /*By far the simplest function lol*/
     playerHeal() {
         this.playerHealth += 10;
         const playerHealthText = this.battleMenuContainer.getAt(4);
         if (playerHealthText) {
             playerHealthText.setText(`Player Health: ${this.playerHealth}`);
         }
+
     }
 
+    /*Basically this is the interaction menu for the player. It's named weirdly because i could not bother*/
     handleButtonClick(buttonText) {
         if (this.lockUi) {
             this.displaySplashText('Currently cannot interact!');
             return;
         }
-
         const selectedEnemyIndex = this.registry.get('enemyIndex');
 
+        console.log("Selected enemy index: " + selectedEnemyIndex);
+        console.log("Selected enemy: " + this.selectedEnemy);
         switch (buttonText) {
             case 'Attack':
                 if (selectedEnemyIndex > -1 && selectedEnemyIndex < 3 && this.selectedEnemy && !this.selectedEnemy.defeated) {
@@ -255,6 +297,7 @@ class BattleScene extends Phaser.Scene {
                 } else {
                     this.displaySplashText('No enemy selected!');
                 }
+
                 break;
             case 'Heal':
                 if (this.playerHealth <= 40) {
@@ -262,6 +305,7 @@ class BattleScene extends Phaser.Scene {
                 } else {
                     this.displaySplashText('Cannot overheal!');
                 }
+
                 break;
             case 'Flee':
                 this.bMusic.stop();
@@ -272,12 +316,15 @@ class BattleScene extends Phaser.Scene {
                         y: 220
                     });
                 });
+
                 break;
+
             default:
                 break;
         }
     }
 
+    /*This runs first, it initializes the scene*/
     initializeBasics() {
         this.cameras.main.fadeIn(1000);
         this.bg = this.add.sprite(0, 0, 'battleBG');
@@ -295,4 +342,5 @@ class BattleScene extends Phaser.Scene {
         });
         this.bMusic.play();
     }
+
 }
