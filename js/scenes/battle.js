@@ -151,7 +151,7 @@ class BattleScene extends Phaser.Scene {
             currentTurn++;
 
             if (currentTurn < maxTurns) {
-                // Execute the next turn after a delay
+                // Execute the next turn after a delay. You can set the delay here if the animation is longer than 2 seconds.
                 this.time.delayedCall(2000, executeTurn, [], this);
             } else {
                 //Unlock UI
