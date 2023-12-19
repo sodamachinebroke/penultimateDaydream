@@ -10,11 +10,14 @@ class BattleScene extends Phaser.Scene {
     }
 
     create() {
+
+        this.registry.set('enemyIndex', -1);
         this.initializeBasics();
         const mainScreen = this.scene.get('game');
         const player = mainScreen.player;
 
-        this.createEnemyGroup();
+        
+        this.playerHealth = 50;
 
 
         this.player = this.physics.add.sprite(600, 300, "player", 10);
@@ -22,6 +25,7 @@ class BattleScene extends Phaser.Scene {
 
 
         this.battleMenu();
+        this.createEnemyGroup();
     }
     createEnemyGroup() {
         this.enemyGroup = this.physics.add.group({
@@ -34,9 +38,117 @@ class BattleScene extends Phaser.Scene {
             },
             createCallback: function (enemy) {
                 enemy.setScale(0.4, 0.4);
+                enemy.health = 10;
             }
         });
+        let enemyCount = 0;
+
+        /*Let's make a button for every enemy*/
+        this.enemyGroup.children.iterate((enemy, index) => {
+            enemyCount++;
+            const enemyButton = this.add.text(
+                50,
+                20 + index * 30,
+                `Enemy ${enemyCount} - HP: ${enemy.health}`,
+                {
+                    fill: '#ffffff',
+                    fontFamily: 'Arial',
+                    fontSize: '20px',
+                }
+            );
+            enemyButton.setInteractive({ useHandCursor: true });
+            enemyButton.on('pointerdown', () => {
+                this.handleEnemyButtonClick(index);
+            });
+
+            this.battleMenuContainer.add(enemyButton);
+        });
+
+
     }
+
+    handleEnemyButtonClick(enemyIndex) {
+
+
+        this.registry.set('enemyIndex', enemyIndex);
+        this.battleMenuContainer.list.slice(4, 7).forEach((enemyButton, index) => {
+
+            if (index != this.registry.get('enemyIndex'))
+                this.tweens.add({
+                    targets: enemyButton,
+                    scaleX: 1,
+                    scaleY: 1,
+
+                });
+        });
+
+
+        // Get the selected enemy button and apply a tween to highlight it
+        const selectedEnemyButton = this.battleMenuContainer.getAt(enemyIndex + 4);
+        if (selectedEnemyButton) {
+            this.selectEnemy = this.tweens.add({
+                targets: selectedEnemyButton,
+                scaleX: 1.5,
+                scaleY: 1.5,
+                duration: 500,
+                ease: 'Linear',
+            });
+        }
+    }
+    battleFunction() {
+
+        for (this.turn = 0; this.turn < 4; this.turn++) {
+            switch (this.turn % 4) {
+                case 0:
+                    const selectedEnemyIndex = this.registry.get('enemyIndex');
+                    if (selectedEnemyIndex !== -1) {
+                        this.playerAttack(selectedEnemyIndex);
+                    }
+                    break;
+                case 1:
+                    this.enemyAttack(0);
+                    break;
+                case 2:
+                    this.enemyAttack(1);
+                    break;
+                case 3:
+                    this.enemyAttack(2);
+                    break;
+
+                default:
+                    break;
+            }
+
+            console.log("Turn mod 4: " + this.turn);
+        }
+    }
+
+
+    
+    playerAttack(enemyIndex) {
+        console.log('Player attacks enemy: ' + (enemyIndex + 1));
+
+        const selectedEnemy = this.enemyGroup.getChildren()[enemyIndex];
+
+        if (selectedEnemy) {
+            const damage = Phaser.Math.Between(1, 10);
+            selectedEnemy.health -= damage;
+            console.log(`Player dealt: ${damage} to enemy ${enemyIndex + 1} - HP: ${selectedEnemy.health}`);
+            const enemyButton = this.battleMenuContainer.getAt(enemyIndex+4);
+            if(enemyButton){
+                enemyButton.setText(`Enemy ${enemyIndex+1} - HP: ${selectedEnemy.health}`);
+            }
+        }
+    }
+
+    enemyAttack(enemyIndex){
+        //console.log('Enemy ' + (enemyIndex + 1) + ' attacks');
+        const damage = Phaser.Math.Between(1,10);
+        console.log(`Initial player health: ${this.playerHealth}`);
+        this.playerHealth -= damage;
+        console.log(`Enemy dealt: ${damage} to the player- Player HP: ${this.playerHealth}`);
+    }
+
 
     battleMenu() {
 
@@ -45,6 +157,12 @@ class BattleScene extends Phaser.Scene {
         bMenuBG.setOrigin(0, 0);
 
         this.battleMenuContainer.add(bMenuBG);
+
+        this.playerHealthText = this.add.text(20, 20, `Player Health: ${this.playerHealth}`,{
+            fill: '#ffffff',
+            fontFamily:'Arial',
+            fontSize: '20px',
+        });
 
         const buttonTexts = ['Attack', 'Heal', 'Flee'];
         buttonTexts.forEach((text, index) => {
@@ -66,30 +184,33 @@ class BattleScene extends Phaser.Scene {
             this.battleMenuContainer.add(button);
         });
 
+        
+
 
 
     }
 
-    handleButtonClick(buttonText){
-        switch(buttonText){
-        case 'Attack':
-            break;
-        case 'Heal':
-            break;
-        case 'Flee':
-            this.bMusic.stop();
-            this.cameras.main.fadeOut(500);
-            this.cameras.main.on(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>{
-                this.scene.start('game', {
-                    x:130,
-                    y:220
+    handleButtonClick(buttonText) {
+        switch (buttonText) {
+            case 'Attack':
+                this.battleFunction();
+                break;
+            case 'Heal':
+                break;
+            case 'Flee':
+                this.bMusic.stop();
+                this.cameras.main.fadeOut(500);
+                this.cameras.main.on(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+                    this.scene.start('game', {
+                        x: 130,
+                        y: 220
+                    });
                 });
-            });
-            
-            break;
 
-        default:
-            break;
+                break;
+
+            default:
+                break;
         }
     }
 
