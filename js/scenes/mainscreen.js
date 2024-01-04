@@ -23,7 +23,6 @@ class MainScreen extends Phaser.Scene {
     this.load.spritesheet("player", "assets/images/player_spritesheet.png", {
       frameWidth: 15,
       frameHeight: 24,
-      margin: 1,
       spacing: 1,
     });
 
