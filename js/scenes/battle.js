@@ -17,9 +17,7 @@ class BattleScene extends Phaser.Scene {
 
         this.registry.set('enemyIndex', -1);
         this.initializeBasics();
-        const mainScreen = this.scene.get('game');
-        //Import the mans
-        const player = mainScreen.player;
+
         /*Player health is reset in every battle. Let's say they like ate a magic mushroom or smth between battles idk*/
         this.playerHealth = 50;
         this.player = this.physics.add.sprite(600, 300, "player", 10);
