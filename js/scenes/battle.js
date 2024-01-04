@@ -6,8 +6,6 @@ class BattleScene extends Phaser.Scene {
     constructor(title) {
         super({ key: title });
     }
-    //We need this to determine whether our guy can attack
-    lockUi = false;
 
     preload() {
 
@@ -15,7 +13,6 @@ class BattleScene extends Phaser.Scene {
 
     create() {
 
-        this.registry.set('enemyIndex', -1);
         this.initializeBasics();
 
         /*Player health is reset in every battle. Let's say they like ate a magic mushroom or smth between battles idk*/
@@ -23,191 +20,14 @@ class BattleScene extends Phaser.Scene {
         this.player = this.physics.add.sprite(600, 300, "player", 10);
         this.player.setScale(3, 3);
 
-        /*Let's make the battle menu*/
         this.battleMenu();
-        /*Let's put enemies down*/
         this.createEnemyGroup();
-
-        /*Don't even mention this, it's awful*/
-        this.splashText = this.add.text(
-            this.cameras.main.width / 2,
-            this.cameras.main.height / 2,
-            'No valid enemy selected!',
-            {
-                fill: '#fc0000',
-                fontFamily: 'Arial',
-                fontSize: '48px',
-            }
-        );
-        this.splashText.setOrigin(0.5);
-        this.splashText.setVisible(false);
     }
 
-    /*Enemy group creation similar to the road crossing game we made in class*/
-    createEnemyGroup() {
-        this.enemyGroup = this.physics.add.group({
-            key: 'enemy',
-            repeat: 2,
-            setXY: {
-                x: 100,
-                y: 200,
-                stepY: 100
-            },
-            createCallback: function (enemy) {
-                enemy.setScale(0.4, 0.4);
-                enemy.health = 10;
-                enemy.defeated = false;
-            }
-        });
-        let enemyCount = 0;
-
-        /*Let's make a button for every enemy*/
-        this.enemyGroup.children.iterate((enemy, index) => {
-            enemyCount++;
-            const enemyButton = this.add.text(
-                50,
-                20 + index * 30,
-                `Enemy ${enemyCount} - HP: ${enemy.health}`,
-                {
-                    fill: '#ffffff',
-                    fontFamily: 'Arial',
-                    fontSize: '20px',
-                }
-            );
-            enemyButton.setInteractive({ useHandCursor: true });
-            enemyButton.on('pointerdown', () => {
-                this.handleEnemyButtonClick(index);
-            });
-
-            this.battleMenuContainer.add(enemyButton);
-        });
-
-
-    }
-
-    handleEnemyButtonClick(enemyIndex) {
-
-        /* I'm gonna be honest, i do not remember why we need to mess around in the registry, but this seemed logical. Hopefully it's safe too.*/
-        /*I remember now, we need this for later*/
-        this.registry.set('enemyIndex', enemyIndex);
-        this.battleMenuContainer.list.slice(5, 8).forEach((enemyButton, index) => {
-
-            if (index != this.registry.get('enemyIndex'))
-                this.tweens.add({
-                    targets: enemyButton,
-                    scaleX: 1,
-                    scaleY: 1,
-
-                });
-        });
-
-
-        // Highlight the selected enemy button
-        const selectedEnemyButton = this.battleMenuContainer.getAt(enemyIndex + 5);
-        if (selectedEnemyButton) {
-            this.selectEnemy = this.tweens.add({
-                targets: selectedEnemyButton,
-                scaleX: 1.5,
-                scaleY: 1.5,
-                duration: 500,
-                ease: 'Linear',
-            });
-
-            this.selectedEnemy = this.enemyGroup.getChildren()[enemyIndex];
-        }
-    }
-    battleFunction() {
-
-        this.lockUi = true;
-        const maxTurns = 4;
-        let currentTurn = 0;
-
-        const executeTurn = () => {
-            /*Need the registry here, i'm not smart enough to rewrite this now*/
-            const selectedEnemyIndex = this.registry.get('enemyIndex');
-            /*Implementing a turn for everyone on the screen. A bit wonky, but works for now*/
-            switch (currentTurn % 4) {
-                case 0:
-                    if (selectedEnemyIndex !== -1) {
-                        this.playerAttack(selectedEnemyIndex);
-                    }
-                    break;
-                case 1:
-                    this.enemyAttack(0);
-                    break;
-                case 2:
-                    this.enemyAttack(1);
-                    break;
-                case 3:
-                    this.enemyAttack(2);
-                    break;
-                default:
-                    break;
-            }
-
-            console.log("Turn mod 4: " + currentTurn);
-            currentTurn++;
-
-            if (currentTurn < maxTurns) {
-                // Execute the next turn after a delay. You can set the delay here if the animation is longer than 2 seconds.
-                this.time.delayedCall(2000, executeTurn, [], this);
-            } else {
-                //Unlock UI
-                this.lockUi = false;
-
-            }
-        };
-
-        // Start the turn sequence
-        executeTurn();
-    }
-
-    playerAttack(enemyIndex) {
-        console.log('Player attacks enemy: ' + (enemyIndex + 1));
-
-        const selectedEnemy = this.selectedEnemy;
-
-        if (selectedEnemy && !selectedEnemy.defeated) {
-            const damage = Phaser.Math.Between(1, 10);
-            selectedEnemy.health -= damage;
-            console.log(`Player dealt: ${damage} to enemy ${enemyIndex + 1} - HP: ${selectedEnemy.health}`);
-            const enemyButton = this.battleMenuContainer.getAt(enemyIndex + 5);
-            if (enemyButton) {
-                enemyButton.setText(`Enemy ${enemyIndex + 1} - HP: ${selectedEnemy.health}`);
-                if (selectedEnemy.health <= 0) {
-                    // Enemy defeated, update defeated flag
-                    selectedEnemy.defeated = true;
-                    this.defeatedEnemies++;
-                    console.log(`Enemy ${enemyIndex + 1} defeated!`);
-
-                    if (this.defeatedEnemies === this.enemyGroup.getChildren().length) {
-                        // All enemies defeated, transition to winScene
-                        console.log('All enemies defeated! Transitioning to winScene');
-                        this.scene.start('winScene');
-                    }
-                }
-            }
-        }
-    }
-
-    /*Enemy attacks. The game logs the player health for debugging purposes but we don't care.*/
-
-    enemyAttack(enemyIndex) {
-        const damage = Phaser.Math.Between(1, 10);
-        console.log(`Initial player health: ${this.playerHealth}`);
-        this.playerHealth -= damage;
-        console.log(`Enemy dealt: ${damage} to the player- Player HP: ${this.playerHealth}`);
-        const playerHealthText = this.battleMenuContainer.getAt(4);
-        if (playerHealthText) {
-            playerHealthText.setText(`Player Health: ${this.playerHealth}`);
-        }
-    }
-
-    /*Supposedly this is where the menu thingy gets defined / made, but it doesn't have everything here. Sometimes we add stuff outside of this function, this really is spaghetti lol*/
     battleMenu() {
-        /*Rectangle*/
+
         this.battleMenuContainer = this.add.container(20, this.game.config.height - 200);
-        const bMenuBG = this.add.rectangle(0, 0, 760, 120, 0x000000, 0.5);
+        const bMenuBG = this.add.rectangle(220, 0, 460, 120, 0x000000, 0.5);
         bMenuBG.setOrigin(0, 0);
         this.battleMenuContainer.add(bMenuBG);
 
@@ -242,15 +62,206 @@ class BattleScene extends Phaser.Scene {
         playerHealthText.setOrigin(0, 0);
         this.battleMenuContainer.add(playerHealthText);
 
+    }
+
+    createEnemyGroup() {
+
+        // Create a group of enemies
+        this.enemyGroup = this.physics.add.group({
+            key: 'enemy',
+            repeat: 2,
+            setXY: {
+                x: 100,
+                y: 200,
+                stepY: 100
+            },
+            createCallback: function (enemy) {
+                enemy.setScale(0.4, 0.4);
+                enemy.baseHealth = 10;
+                enemy.currentHealth = 10;
+                enemy.defeated = false;
+            }
+        });
+
+        // Set enemies properties
+        this.enemyGroup.getChildren().forEach((enemy) =>  {
+
+            enemy.setInteractive();
+            enemy.on('pointerdown', () => {
+                this.selectedEnemy = enemy;
+                this.enemyGroup.getChildren().forEach((enemy) =>  {
+                    enemy.clearTint();
+                });
+                enemy.setTint(0xff0000);
+            });
+            enemy.on('pointerover', () => {
+                if(enemy !== this.selectedEnemy)
+                    enemy.setTint(0x7878ff);
+            });
+            enemy.on('pointerout', () => {
+                if(enemy !== this.selectedEnemy)
+                    enemy.clearTint();
+            });
+
+            enemy.tweenAttack = this.tweens.add({
+                targets: enemy,
+                paused: true,
+                x: this.player.x - 50,
+                y: this.player.y,
+                duration: 500,
+                ease: 'Expo.out',
+                yoyo: true,
+                persist: true,
+            });
+
+            enemy.healthBar = this.makeBar(enemy.x-25, enemy.y-60, 0xff0000);
+        });
+    }
+    
+    makeBar(x, y, color) {
+        //draw a healthbar
+        let bar = this.add.graphics();
+
+        bar.fillStyle(color, 1);
+
+        bar.fillRect(0, 0, 64, 8);
+
+        bar.x = x;
+        bar.y = y;
+
+        return bar;
+    }
+
+    setHealthBarValue(bar, baseHealth, currentHealth) {
+        bar.scaleX = currentHealth / baseHealth;
+    }
+
+    battleFunction() {
+        this.currentTurn = 'PLAYER';
+
+        const executeTurn = () => {
+
+            switch (this.currentTurn) {
+                case 'PLAYER':
+                    this.playerAttack();
+                    this.time.delayedCall(2000, executeTurn, [], this);
+                    break;
+                case 'ENEMY':
+                    this.enemyTurn();
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        // Start the turn sequence
+        executeTurn();
+    }
+
+    playerAttack() {
+        let selectedEnemy = this.selectedEnemy;
+
+        if (!selectedEnemy) {
+            this.splashText.setText('No enemy selected!');
+            return;
+        }
+
+        this.tweens.add({
+            targets: this.player,
+            x: selectedEnemy.x + 50,
+            y: selectedEnemy.y,
+            duration: 500,
+            yoyo: true,
+            ease: 'Expo.out',
+        });
 
 
+        let damage = Phaser.Math.Between(1, 10);
+        selectedEnemy.currentHealth -= damage;
+        selectedEnemy.clearTint();
+
+        if(selectedEnemy.currentHealth <= 0){
+            selectedEnemy.healthBar.destroy();
+            selectedEnemy.destroy();
+        } else{
+            this.setHealthBarValue(selectedEnemy.healthBar, selectedEnemy.baseHealth, selectedEnemy.currentHealth);
+        }
+        if(this.enemyGroup.getChildren().length === 0){
+            this.playerWon();
+        }else{
+            this.currentTurn = 'ENEMY';
+        }
+    }
+
+    playerWon() {
+        this.bMusic.stop();
+        this.currentTurn = 'OVER';
+        const rect = new Phaser.Geom.Rectangle(0, 0, this.cameras.main.width, this.cameras.main.height);
+
+        this.add.particles(400, 250, 'flares', {
+            frame: [ 'red', 'yellow', 'green' ],
+            lifespan: 4000,
+            speed: { min: 150, max: 250 },
+            scale: { start: 0.4, end: 0 },
+            gravityY: 150,
+            bounce: 0.8,
+            bounds: rect,
+            blendMode: 'ADD'
+        });
+
+        const graphics = this.add.graphics();
+        this.sound.play('win');
+        this.sound.volume = 0.5;
+
+        graphics.lineStyle(1, 0x000000, 0);
+        graphics.strokeRectShape(rect);
+
+
+    }
+
+    playerLose(){
+        this.bMusic.stop();
+        this.sound.play('lose');
+        this.sound.volume = 0.5;
+
+        this.cameras.main.fade(2000, 255, 0, 0, false, (camera, progress) => {
+            if(progress === 1){
+                this.scene.start('mainmenu', {
+                    x: 130,
+                    y: 220
+                });
+            }
+        });
+    }
+
+    enemyTurn() {
+
+        for (let i = 0; i < this.enemyGroup.getChildren().length; i++) {
+            this.time.delayedCall(i*800, this.enemyAttack, [this.enemyGroup.getChildren()[i]], this);
+        }
+        this.currentTurn = 'PLAYER';
+        this.selectedEnemy = null;
+    }
+
+    enemyAttack(enemy ) {
+
+        const damage = Phaser.Math.Between(1, 10);
+
+        this.playerHealth -= damage;
+        const playerHealthText = this.battleMenuContainer.getAt(4);
+        if (playerHealthText) {
+            playerHealthText.setText(`Player Health: ${this.playerHealth}`);
+        }
+        enemy.tweenAttack.play();
+
+        if(this.playerHealth <= 0){
+            this.playerLose();
+        }
     }
 
     /*Function to break the 4th wall, used to display information. Is kind of similar to a Minecraft function.*/
 
     displaySplashText(text) {
-        this.clearMessages();
-
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
 
@@ -280,22 +291,14 @@ class BattleScene extends Phaser.Scene {
 
     /*Basically this is the interaction menu for the player. It's named weirdly because i could not bother*/
     handleButtonClick(buttonText) {
-        if (this.lockUi) {
-            this.displaySplashText('Currently cannot interact!');
-            return;
-        }
-        const selectedEnemyIndex = this.registry.get('enemyIndex');
 
-        console.log("Selected enemy index: " + selectedEnemyIndex);
-        console.log("Selected enemy: " + this.selectedEnemy);
         switch (buttonText) {
             case 'Attack':
-                if (selectedEnemyIndex > -1 && selectedEnemyIndex < 3 && this.selectedEnemy && !this.selectedEnemy.defeated) {
+                if (this.selectedEnemy ) {
                     this.battleFunction();
                 } else {
                     this.displaySplashText('No enemy selected!');
                 }
-
                 break;
             case 'Heal':
                 if (this.playerHealth <= 40) {
@@ -314,9 +317,7 @@ class BattleScene extends Phaser.Scene {
                         y: 220
                     });
                 });
-
                 break;
-
             default:
                 break;
         }
@@ -339,6 +340,19 @@ class BattleScene extends Phaser.Scene {
             ease: 'Linear'
         });
         this.bMusic.play();
+
+        this.splashText = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            'No valid enemy selected!',
+            {
+                fill: '#fc0000',
+                fontFamily: 'Arial',
+                fontSize: '48px',
+            }
+        );
+        this.splashText.setOrigin(0.5);
+        this.splashText.setVisible(false);
     }
 
 }

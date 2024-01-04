@@ -34,6 +34,10 @@ class MainScreen extends Phaser.Scene {
 
     this.load.audio("battlesong", ["battlemusic", "assets/music/Battle.mp3"])
     this.load.audio("song", ["music", "assets/music/Worldmusic.mp3"]);
+    this.load.audio("lose", ["lose", "assets/music/lose.wav"]);
+    this.load.audio("win", ["win", "assets/music/win.wav"]);
+
+    this.load.atlas('flares', 'assets/particles/flares.png', 'assets/particles/flares.json');
   }
 
 
